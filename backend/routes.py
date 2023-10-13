@@ -89,5 +89,34 @@ def create_song():
         result = db.songs.insert_one(new_song)
         return ({"insert id": {"$oid":str(result.inserted_id)} }, 201)
 
+# PUT SONG
+@app.route("/song/<int:id>", methods=["PUT"])
+def update_song(id):
+    updated_song = request.json
+    song = db.songs.find_one({"id": id})
+
+    if song is not None:
+        newvalues = {"$set": updated_song}
+        result = db.songs.update_one({"id": id}, newvalues)
+        
+        if result.modified_count > 0:
+            updated_song["_id"] = {"$oid":str(song["_id"])}
+            updated_song["id"] = id
+            return jsonify(updated_song), 201
+        else:
+            return ({"message": "song found, but nothing updated"}, 200)
+    else:
+        return ({"message": "Song not found"}, 404)
+
+#DELETE SONG
+@app.route("/song/<int:id>", methods=["DELETE"])
+def delete_song(id):
+
+    result = db.songs.delete_one({"id": id})
+
+    if result.deleted_count > 0:
+        return ({}, 204)
+    else:
+        return ({"message": "Song not found"}, 404)
 
 ######################################################################
